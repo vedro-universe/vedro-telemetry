@@ -130,8 +130,8 @@ class VedroTelemetryPlugin(Plugin):
 class VedroTelemetry(PluginConfig):
     plugin = VedroTelemetryPlugin
 
-    # Vedro Telemetry API
+    # Vedro Telemetry API URL
     api_url: str = "http://localhost:8080"
 
-    # Timeout for requests
+    # Timeout for requests to the API
     timeout: float = 5.0

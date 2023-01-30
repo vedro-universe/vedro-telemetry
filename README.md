@@ -1,5 +1,10 @@
 # Vedro Telemetry
 
+[![Codecov](https://img.shields.io/codecov/c/github/tsv1/vedro-telemetry/main.svg?style=flat-square)](https://codecov.io/gh/tsv1/vedro-telemetry)
+[![PyPI](https://img.shields.io/pypi/v/vedro-telemetry.svg?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/vedro-telemetry?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
+[![Python Version](https://img.shields.io/pypi/pyversions/vedro-telemetry.svg?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
+
 Vedro plugin for self-hosted telemetry
 
 ## Installation
@@ -24,6 +29,10 @@ class Config(vedro.Config):
         class VedroTelemetry(vedro_telemetry.VedroTelemetry):
             enabled = True
 
+            #  # Vedro Telemetry API URL
             api_url: str = "http://localhost:8080"
+            
+            # Timeout for requests to the API
             timeout: float = 5.0
+
 ```
