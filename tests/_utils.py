@@ -1,16 +1,18 @@
+import sys
 from pathlib import Path
 from time import monotonic_ns
-from typing import Any, Dict
+from types import TracebackType
+from typing import Any, Dict, cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from vedro import Scenario
-from vedro.core import Config, ConfigType, Dispatcher, Report, VirtualScenario
+from vedro.core import Config, ConfigType, Dispatcher, ExcInfo, Report, VirtualScenario
 
 from vedro_telemetry import VedroTelemetry, VedroTelemetryPlugin
 
 __all__ = ("dispatcher", "config", "plugin", "send_request_", "report_",
-           "make_vscenario", "get_telemetry_event", "assert_telemetry_event",)
+           "make_vscenario", "make_exc_info", "get_telemetry_event", "assert_telemetry_event",)
 
 
 @pytest.fixture()
@@ -53,6 +55,14 @@ def make_vscenario() -> VirtualScenario:
     return vsenario
 
 
+def make_exc_info(exc_val: BaseException) -> ExcInfo:
+    try:
+        raise exc_val
+    except type(exc_val):
+        *_, traceback = sys.exc_info()
+    return ExcInfo(type(exc_val), exc_val, cast(TracebackType, traceback))
+
+
 def get_telemetry_event(mock: AsyncMock) -> Dict[str, Any]:
     # send_request call
     assert len(mock.call_args_list) == 1, mock.call_args_list
@@ -70,9 +80,10 @@ def get_telemetry_event(mock: AsyncMock) -> Dict[str, Any]:
 def assert_telemetry_event(telemetry_event, body: Dict[str, Any]) -> bool:
     assert isinstance(telemetry_event["session_id"], str)
     assert isinstance(telemetry_event["created_at"], int)
-    assert telemetry_event == {
+    expected = {
         "session_id": telemetry_event["session_id"],
         "created_at": telemetry_event["created_at"],
         **body,
     }
+    assert telemetry_event == expected, (telemetry_event, expected)
     return True

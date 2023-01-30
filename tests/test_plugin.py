@@ -11,6 +11,7 @@ from vedro.events import (
     ArgParseEvent,
     CleanupEvent,
     ConfigLoadedEvent,
+    ExceptionRaisedEvent,
     StartupEvent,
 )
 
@@ -21,6 +22,7 @@ from ._utils import (
     config,
     dispatcher,
     get_telemetry_event,
+    make_exc_info,
     make_vscenario,
     plugin,
     report_,
@@ -111,8 +113,28 @@ async def test_startup_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dispat
         })
 
 
-async def test_raised_exception_event():
-    pass
+async def test_raised_exc_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
+                                send_request_: AsyncMock):
+    with given:
+        exc_info = make_exc_info(AssertionError("1 != 0"))
+        event = ExceptionRaisedEvent(exc_info)
+        await dispatcher.fire(event)
+
+    with when:
+        await dispatcher.fire(CleanupEvent(Report()))
+
+    with then:
+        telemetry_event = get_telemetry_event(send_request_)
+        assert assert_telemetry_event(telemetry_event, {
+            "event_id": "ExcRaisedTelemetryEvent",
+            "exception": {
+                "type": "AssertionError",
+                "message": "1 != 0",
+                "traceback": [
+                    '  File "./tests/_utils.py", line 60, in make_exc_info\n    raise exc_val\n'
+                ]
+            }
+        })
 
 
 async def test_ended_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,

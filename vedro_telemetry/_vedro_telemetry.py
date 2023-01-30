@@ -2,6 +2,8 @@ import os
 import sys
 from argparse import ArgumentParser
 from http import HTTPStatus
+from traceback import format_tb
+from types import TracebackType
 from typing import Any, List, Type, Union
 from uuid import uuid4
 
@@ -20,6 +22,7 @@ from .events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
     EndedTelemetryEvent,
+    ExcRaisedTelemetryEvent,
     PluginInfo,
     StartedTelemetryEvent,
     StartupTelemetryEvent,
@@ -84,7 +87,9 @@ class VedroTelemetryPlugin(Plugin):
         self._events += [StartupTelemetryEvent(self._session_id, discovered, scheduled)]
 
     def on_exception_raised(self, event: ExceptionRaisedEvent) -> None:
-        pass
+        exc_info = event.exc_info
+        tb = self._format_traceback(exc_info.traceback)
+        self._events += [ExcRaisedTelemetryEvent(self._session_id, exc_info.value, tb)]
 
     async def on_cleanup(self, event: CleanupEvent) -> None:
         report = event.report
@@ -98,15 +103,18 @@ class VedroTelemetryPlugin(Plugin):
             )
         ]
         try:
-            await self.send_events()
+            await self._send_events()
         finally:
             pass
 
-    async def send_events(self) -> None:
+    async def _send_events(self) -> None:
         payload = [e.to_dict() for e in self._events]
         status, body = await self._send_request(self._api_url, self._timeout, payload)
         if status != HTTPStatus.OK:
             raise RuntimeError(f"Failed to send events: {status} {body}")
+
+    def _format_traceback(self, tb: TracebackType) -> List[str]:
+        return [self._cleanup_arg(x) for x in format_tb(tb, limit=100)]
 
     def _cleanup_arg(self, arg: Any, cwd: str = os.getcwd()) -> Any:
         if isinstance(arg, dict):

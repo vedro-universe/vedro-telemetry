@@ -109,15 +109,27 @@ class StartupTelemetryEvent(TelemetryEvent):
 
 
 class ExcRaisedTelemetryEvent(TelemetryEvent):
-    def __init__(self, session_id: UUID) -> None:
+    def __init__(self, session_id: UUID, exception: BaseException, traceback: List[str]) -> None:
         super().__init__()
         self._session_id = str(session_id)
+        self._exception = exception
+        self._traceback = traceback
 
     def to_dict(self) -> Dict[str, Any]:
-        return {}
+        return {
+            "event_id": f"{self.__class__.__name__}",
+            "session_id": self._session_id,
+            "created_at": self._created_at,
+            "exception": {
+                "type": type(self._exception).__name__,
+                "message": str(self._exception),
+                "traceback": self._traceback,
+            }
+        }
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} session_id={self._session_id!r}>"
+        return (f"<{self.__class__.__name__} session_id={self._session_id!r} "
+                f"exception={self._exception!r}>")
 
 
 class EndedTelemetryEvent(TelemetryEvent):

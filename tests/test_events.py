@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from baby_steps import given, then, when
 
+from tests._utils import make_exc_info
 from vedro_telemetry.events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
@@ -67,13 +68,16 @@ def test_startup_telemetry_event_repr():
 def test_exc_raised_telemetry_event_repr():
     with given:
         session_id = uuid4()
-        event = ExcRaisedTelemetryEvent(session_id)
+        exception = AssertionError("1 != 0")
+        exc_info = make_exc_info(exception)
+        event = ExcRaisedTelemetryEvent(session_id, exc_info.value, [])
 
     with when:
         res = repr(event)
 
     with then:
-        assert res == f"<ExcRaisedTelemetryEvent session_id={str(session_id)!r}>"
+        assert res == (f"<ExcRaisedTelemetryEvent session_id={str(session_id)!r} "
+                       f"exception={exception!r}>")
 
 
 def test_ended_telemetry_event_repr():
