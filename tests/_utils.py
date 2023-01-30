@@ -1,0 +1,78 @@
+from pathlib import Path
+from time import monotonic_ns
+from typing import Any, Dict
+from unittest.mock import AsyncMock, Mock
+
+import pytest
+from vedro import Scenario
+from vedro.core import Config, ConfigType, Dispatcher, Report, VirtualScenario
+
+from vedro_telemetry import VedroTelemetry, VedroTelemetryPlugin
+
+__all__ = ("dispatcher", "config", "plugin", "send_request_", "report_",
+           "make_vscenario", "get_telemetry_event", "assert_telemetry_event",)
+
+
+@pytest.fixture()
+def dispatcher() -> Dispatcher:
+    return Dispatcher()
+
+
+@pytest.fixture()
+def config() -> ConfigType:
+    class Conf(Config):
+        class Plugins(Config.Plugins):
+            class VedroTelemetry(VedroTelemetry):
+                enabled = True
+    return Conf
+
+
+@pytest.fixture()
+def send_request_() -> AsyncMock:
+    response = 200, {}
+    return AsyncMock(return_value=response)
+
+
+@pytest.fixture()
+def plugin(dispatcher: Dispatcher, send_request_) -> VedroTelemetryPlugin:
+    plugin = VedroTelemetryPlugin(VedroTelemetry, send_request=send_request_)
+    plugin.subscribe(dispatcher)
+    return plugin
+
+
+@pytest.fixture()
+def report_() -> Mock:
+    return Mock(Report, total=6, passed=3, failed=2, skipped=1)
+
+
+def make_vscenario() -> VirtualScenario:
+    class _Scenario(Scenario):
+        __file__ = Path(f"scenario_{monotonic_ns()}.py").absolute()
+
+    vsenario = VirtualScenario(_Scenario, steps=[])
+    return vsenario
+
+
+def get_telemetry_event(mock: AsyncMock) -> Dict[str, Any]:
+    # send_request call
+    assert len(mock.call_args_list) == 1, mock.call_args_list
+    arg_list = mock.call_args_list[0]
+
+    # send_request call args (url, timeout, payload)
+    assert len(arg_list.args) == 3, arg_list.args
+    last_arg = arg_list.args[-1]
+
+    # first event in payload
+    assert len(last_arg) >= 1, last_arg
+    return last_arg[0]
+
+
+def assert_telemetry_event(telemetry_event, body: Dict[str, Any]) -> bool:
+    assert isinstance(telemetry_event["session_id"], str)
+    assert isinstance(telemetry_event["created_at"], int)
+    assert telemetry_event == {
+        "session_id": telemetry_event["session_id"],
+        "created_at": telemetry_event["created_at"],
+        **body,
+    }
+    return True
