@@ -136,7 +136,7 @@ async def test_raised_exc_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dis
             "event_id": "ExcRaisedTelemetryEvent",
             "scenario_id": f"{scenario_result.scenario.rel_path}::Scenario",
             "exception": {
-                "type": "AssertionError",
+                "type": "builtins.AssertionError",
                 "message": "1 != 0",
                 "traceback": [
                     '  File "./tests/_utils.py", line 75, in make_exc_info\n    raise exc_val\n'
@@ -163,6 +163,7 @@ async def test_ended_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Disp
             "passed": report_.passed,
             "failed": report_.failed,
             "skipped": report_.skipped,
+            "interrupted": None,
         })
         assert send_request_.mock_calls == [
             call(api_url, timeout, [telemetry_event])

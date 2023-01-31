@@ -2,7 +2,6 @@ from uuid import uuid4
 
 from baby_steps import given, then, when
 
-from tests._utils import make_exc_info
 from vedro_telemetry.events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
@@ -71,16 +70,18 @@ def test_exc_raised_telemetry_event_repr():
     with given:
         session_id = uuid4()
         scenario_id = "scenarios/scenario.py::Scenario"
-        exception = AssertionError("1 != 0")
-        exc_info = make_exc_info(exception)
-        event = ExcRaisedTelemetryEvent(session_id, scenario_id, exc_info.value, [])
+        event = ExcRaisedTelemetryEvent(session_id, scenario_id, {
+            "type": "builtins.AssertionError",
+            "message": "1 != 0",
+            "traceback": []
+        })
 
     with when:
         res = repr(event)
 
     with then:
         assert res == (f"<ExcRaisedTelemetryEvent session_id={str(session_id)!r} "
-                       f"scenario_id={scenario_id!r} exception={exception!r}>")
+                       f"scenario_id={scenario_id!r} exc_type='builtins.AssertionError'>")
 
 
 def test_ended_telemetry_event_repr():
@@ -88,7 +89,7 @@ def test_ended_telemetry_event_repr():
         session_id = uuid4()
         total, passed, failed, skipped = 6, 3, 2, 1
         event = EndedTelemetryEvent(session_id, total=total, passed=passed,
-                                    failed=failed, skipped=skipped)
+                                    failed=failed, skipped=skipped, interrupted=None)
 
     with when:
         res = repr(event)
@@ -96,4 +97,4 @@ def test_ended_telemetry_event_repr():
     with then:
         assert res == (f"<EndedTelemetryEvent session_id={str(session_id)!r} "
                        f"total={total} passed={passed} failed={failed} "
-                       f"skipped={skipped}>")
+                       f"skipped={skipped} is_interrupted=False>")

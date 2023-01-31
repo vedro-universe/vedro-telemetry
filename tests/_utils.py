@@ -53,7 +53,7 @@ def plugin(dispatcher: Dispatcher, send_request_) -> VedroTelemetryPlugin:
 
 @pytest.fixture()
 def report_() -> Mock:
-    return Mock(Report, total=6, passed=3, failed=2, skipped=1)
+    return Mock(Report, total=6, passed=3, failed=2, skipped=1, interrupted=None)
 
 
 def make_vscenario() -> VirtualScenario:

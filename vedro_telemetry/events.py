@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from time import time
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, TypedDict, Union
 from uuid import UUID
 
 __all__ = ("StartedTelemetryEvent", "ArgParseTelemetryEvent", "ArgParsedTelemetryEvent",
@@ -112,13 +112,11 @@ class StartupTelemetryEvent(TelemetryEvent):
 
 
 class ExcRaisedTelemetryEvent(TelemetryEvent):
-    def __init__(self, session_id: UUID, scenario_id: str,
-                 exception: BaseException, traceback: List[str]) -> None:
+    def __init__(self, session_id: UUID, scenario_id: str, exception: ExceptionInfo) -> None:
         super().__init__()
         self._session_id = str(session_id)
         self._scenario_id = scenario_id
         self._exception = exception
-        self._traceback = traceback
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -126,27 +124,24 @@ class ExcRaisedTelemetryEvent(TelemetryEvent):
             "session_id": self._session_id,
             "created_at": self._created_at,
             "scenario_id": self._scenario_id,
-            "exception": {
-                "type": type(self._exception).__name__,
-                "message": str(self._exception),
-                "traceback": self._traceback,
-            }
+            "exception": self._exception,
         }
 
     def __repr__(self) -> str:
         return (f"<{self.__class__.__name__} session_id={self._session_id!r} "
-                f"scenario_id={self._scenario_id!r} exception={self._exception!r}>")
+                f"scenario_id={self._scenario_id!r} exc_type={self._exception['type']!r}>")
 
 
 class EndedTelemetryEvent(TelemetryEvent):
     def __init__(self, session_id: UUID, *, total: int, passed: int, failed: int,
-                 skipped: int) -> None:
+                 skipped: int, interrupted: Union[ExceptionInfo, None]) -> None:
         super().__init__()
         self._session_id = str(session_id)
         self._total = total
         self._passed = passed
         self._failed = failed
         self._skipped = skipped
+        self._interrupted = interrupted
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -156,10 +151,12 @@ class EndedTelemetryEvent(TelemetryEvent):
             "total": self._total,
             "passed": self._passed,
             "failed": self._failed,
-            "skipped": self._skipped
+            "skipped": self._skipped,
+            "interrupted": self._interrupted,
         }
 
     def __repr__(self) -> str:
+        is_interrupted = self._interrupted is not None
         return (f"<{self.__class__.__name__} session_id={self._session_id!r} "
                 f"total={self._total} passed={self._passed} failed={self._failed} "
-                f"skipped={self._skipped}>")
+                f"skipped={self._skipped} is_interrupted={is_interrupted!r}>")

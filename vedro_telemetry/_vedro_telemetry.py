@@ -7,7 +7,7 @@ from types import TracebackType
 from typing import Any, List, Type, Union
 from uuid import uuid4
 
-from vedro.core import Dispatcher, Plugin, PluginConfig
+from vedro.core import Dispatcher, ExcInfo, Plugin, PluginConfig
 from vedro.events import (
     ArgParsedEvent,
     ArgParseEvent,
@@ -23,6 +23,7 @@ from .events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
     EndedTelemetryEvent,
+    ExceptionInfo,
     ExcRaisedTelemetryEvent,
     PluginInfo,
     StartedTelemetryEvent,
@@ -100,13 +101,14 @@ class VedroTelemetryPlugin(Plugin):
             exc_info = step_result.exc_info
             if exc_info is None:
                 continue
-            tb = self._format_traceback(exc_info.traceback)
+            exception = self._format_exception(exc_info)
             self._events += [
-                ExcRaisedTelemetryEvent(self._session_id, scenario_id, exc_info.value, tb)
+                ExcRaisedTelemetryEvent(self._session_id, scenario_id, exception)
             ]
 
     async def on_cleanup(self, event: CleanupEvent) -> None:
         report = event.report
+        interrupted = self._format_exception(report.interrupted) if report.interrupted else None
         self._events += [
             EndedTelemetryEvent(
                 session_id=self._session_id,
@@ -114,6 +116,7 @@ class VedroTelemetryPlugin(Plugin):
                 passed=report.passed,
                 failed=report.failed,
                 skipped=report.skipped,
+                interrupted=interrupted,
             )
         ]
         try:
@@ -125,6 +128,14 @@ class VedroTelemetryPlugin(Plugin):
         payload = [e.to_dict() for e in self._events]
         await self._send_request(self._api_url, self._timeout, payload)
         self._events = []
+
+    def _format_exception(self, exc_info: ExcInfo) -> ExceptionInfo:
+        exc_type = exc_info.type
+        return {
+            "type": f"{exc_type.__module__}.{exc_type.__name__}",
+            "message": str(exc_info.value),
+            "traceback": self._format_traceback(exc_info.traceback),
+        }
 
     def _format_traceback(self, tb: TracebackType) -> List[str]:
         return [self._cleanup_arg(x) for x in format_tb(tb, limit=100)]
