@@ -1,7 +1,6 @@
 import os
 import sys
 from argparse import ArgumentParser
-from http import HTTPStatus
 from traceback import format_tb
 from types import TracebackType
 from typing import Any, List, Type, Union
@@ -17,7 +16,8 @@ from vedro.events import (
     StartupEvent,
 )
 
-from ._send_request import SendRequestType, send_request
+from ._send_request import SendRequestFn, send_request
+from ._utils import get_project_name
 from .events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
@@ -34,12 +34,13 @@ __all__ = ("VedroTelemetry", "VedroTelemetryPlugin",)
 
 class VedroTelemetryPlugin(Plugin):
     def __init__(self, config: Type["VedroTelemetry"], *,
-                 send_request: SendRequestType = send_request) -> None:
+                 send_request: SendRequestFn = send_request) -> None:
         super().__init__(config)
         self._api_url = config.api_url
         self._timeout = config.timeout
         self._send_request = send_request
         self._session_id = uuid4()
+        self._project_id = get_project_name() or "unknown"
         self._events: List[TelemetryEvent] = []
         self._arg_parser: Union[ArgumentParser, None] = None
 
@@ -54,12 +55,16 @@ class VedroTelemetryPlugin(Plugin):
     def on_config_loaded(self, event: ConfigLoadedEvent) -> None:
         plugins: List[PluginInfo] = []
         for _, section in event.config.Plugins.items():
+            name = section.plugin.__name__
+            module = section.plugin.__module__
+            if module.startswith("vedro.plugins") and section.enabled:
+                continue
             plugins.append({
-                "name": section.plugin.__name__,
-                "module": section.plugin.__module__,
+                "name": name,
+                "module": module,
                 "enabled": section.enabled,
             })
-        self._events += [StartedTelemetryEvent(self._session_id, plugins)]
+        self._events += [StartedTelemetryEvent(self._session_id, self._project_id, plugins)]
 
     def on_arg_parse(self, event: ArgParseEvent) -> None:
         self._arg_parser = event.arg_parser  # needed for on_arg_parsed
@@ -109,9 +114,8 @@ class VedroTelemetryPlugin(Plugin):
 
     async def _send_events(self) -> None:
         payload = [e.to_dict() for e in self._events]
-        status, body = await self._send_request(self._api_url, self._timeout, payload)
-        if status != HTTPStatus.OK:
-            raise RuntimeError(f"Failed to send events: {status} {body}")
+        await self._send_request(self._api_url, self._timeout, payload)
+        self._events = []
 
     def _format_traceback(self, tb: TracebackType) -> List[str]:
         return [self._cleanup_arg(x) for x in format_tb(tb, limit=100)]

@@ -34,15 +34,17 @@ class TelemetryEvent(ABC):
 
 
 class StartedTelemetryEvent(TelemetryEvent):
-    def __init__(self, session_id: UUID, plugins: List[PluginInfo]) -> None:
+    def __init__(self, session_id: UUID, project_id: str, plugins: List[PluginInfo]) -> None:
         super().__init__()
         self._session_id = str(session_id)
+        self._project_id = project_id
         self._plugins = plugins
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "event_id": f"{self.__class__.__name__}",
             "session_id": self._session_id,
+            "project_id": self._project_id,
             "created_at": self._created_at,
             "plugins": self._plugins,
         }
