@@ -50,7 +50,8 @@ class StartedTelemetryEvent(TelemetryEvent):
         }
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} session_id={self._session_id!r}>"
+        return (f"<{self.__class__.__name__} session_id={self._session_id!r} "
+                f"project_id={self._project_id!r}>")
 
 
 class ArgParseTelemetryEvent(TelemetryEvent):
@@ -111,9 +112,11 @@ class StartupTelemetryEvent(TelemetryEvent):
 
 
 class ExcRaisedTelemetryEvent(TelemetryEvent):
-    def __init__(self, session_id: UUID, exception: BaseException, traceback: List[str]) -> None:
+    def __init__(self, session_id: UUID, scenario_id: str,
+                 exception: BaseException, traceback: List[str]) -> None:
         super().__init__()
         self._session_id = str(session_id)
+        self._scenario_id = scenario_id
         self._exception = exception
         self._traceback = traceback
 
@@ -122,6 +125,7 @@ class ExcRaisedTelemetryEvent(TelemetryEvent):
             "event_id": f"{self.__class__.__name__}",
             "session_id": self._session_id,
             "created_at": self._created_at,
+            "scenario_id": self._scenario_id,
             "exception": {
                 "type": type(self._exception).__name__,
                 "message": str(self._exception),
@@ -131,7 +135,7 @@ class ExcRaisedTelemetryEvent(TelemetryEvent):
 
     def __repr__(self) -> str:
         return (f"<{self.__class__.__name__} session_id={self._session_id!r} "
-                f"exception={self._exception!r}>")
+                f"scenario_id={self._scenario_id!r} exception={self._exception!r}>")
 
 
 class EndedTelemetryEvent(TelemetryEvent):

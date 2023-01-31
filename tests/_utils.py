@@ -6,13 +6,22 @@ from typing import Any, Dict, cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from vedro import Scenario
-from vedro.core import Config, ConfigType, Dispatcher, ExcInfo, Report, VirtualScenario
+from vedro import Scenario as Scenario_
+from vedro.core import (
+    Config,
+    ConfigType,
+    Dispatcher,
+    ExcInfo,
+    Report,
+    VirtualScenario,
+    VirtualStep,
+)
 
 from vedro_telemetry import VedroTelemetry, VedroTelemetryPlugin
 
 __all__ = ("dispatcher", "config", "plugin", "send_request_", "report_",
-           "make_vscenario", "make_exc_info", "get_telemetry_event", "assert_telemetry_event",)
+           "make_vscenario", "make_exc_info", "make_vstep", "get_telemetry_event",
+           "assert_telemetry_event",)
 
 
 @pytest.fixture()
@@ -48,11 +57,17 @@ def report_() -> Mock:
 
 
 def make_vscenario() -> VirtualScenario:
-    class _Scenario(Scenario):
+    class Scenario(Scenario_):
         __file__ = Path(f"scenario_{monotonic_ns()}.py").absolute()
 
-    vsenario = VirtualScenario(_Scenario, steps=[])
+    vsenario = VirtualScenario(Scenario, steps=[])
     return vsenario
+
+
+def make_vstep() -> VirtualStep:
+    def step():
+        pass
+    return VirtualStep(step)
 
 
 def make_exc_info(exc_val: BaseException) -> ExcInfo:

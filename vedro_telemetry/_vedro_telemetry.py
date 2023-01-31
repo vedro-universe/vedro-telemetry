@@ -1,6 +1,7 @@
 import os
 import sys
 from argparse import ArgumentParser
+from base64 import b64decode
 from traceback import format_tb
 from types import TracebackType
 from typing import Any, List, Type, Union
@@ -12,7 +13,7 @@ from vedro.events import (
     ArgParseEvent,
     CleanupEvent,
     ConfigLoadedEvent,
-    ExceptionRaisedEvent,
+    ScenarioFailedEvent,
     StartupEvent,
 )
 
@@ -40,7 +41,7 @@ class VedroTelemetryPlugin(Plugin):
         self._timeout = config.timeout
         self._send_request = send_request
         self._session_id = uuid4()
-        self._project_id = get_project_name() or "unknown"
+        self._project_id = get_project_name(default="unknown")
         self._events: List[TelemetryEvent] = []
         self._arg_parser: Union[ArgumentParser, None] = None
 
@@ -49,7 +50,7 @@ class VedroTelemetryPlugin(Plugin):
                   .listen(ArgParseEvent, self.on_arg_parse) \
                   .listen(ArgParsedEvent, self.on_arg_parsed) \
                   .listen(StartupEvent, self.on_startup) \
-                  .listen(ExceptionRaisedEvent, self.on_exception_raised) \
+                  .listen(ScenarioFailedEvent, self.on_scenario_failed) \
                   .listen(CleanupEvent, self.on_cleanup)
 
     def on_config_loaded(self, event: ConfigLoadedEvent) -> None:
@@ -91,10 +92,18 @@ class VedroTelemetryPlugin(Plugin):
         scheduled = len(list(event.scheduler.scheduled))
         self._events += [StartupTelemetryEvent(self._session_id, discovered, scheduled)]
 
-    def on_exception_raised(self, event: ExceptionRaisedEvent) -> None:
-        exc_info = event.exc_info
-        tb = self._format_traceback(exc_info.traceback)
-        self._events += [ExcRaisedTelemetryEvent(self._session_id, exc_info.value, tb)]
+    def on_scenario_failed(self, event: ScenarioFailedEvent) -> None:
+        scenario_result = event.scenario_result
+        scenario_id = b64decode(scenario_result.scenario.unique_id + "===").decode()
+
+        for step_result in scenario_result.step_results:
+            exc_info = step_result.exc_info
+            if exc_info is None:
+                continue
+            tb = self._format_traceback(exc_info.traceback)
+            self._events += [
+                ExcRaisedTelemetryEvent(self._session_id, scenario_id, exc_info.value, tb)
+            ]
 
     async def on_cleanup(self, event: CleanupEvent) -> None:
         report = event.report

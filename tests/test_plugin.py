@@ -5,13 +5,13 @@ from unittest.mock import AsyncMock, Mock, call, patch
 from baby_steps import given, then, when
 from vedro.core import ConfigType, Dispatcher
 from vedro.core import MonotonicScenarioScheduler as Scheduler
-from vedro.core import Report
+from vedro.core import Report, ScenarioResult, StepResult
 from vedro.events import (
     ArgParsedEvent,
     ArgParseEvent,
     CleanupEvent,
     ConfigLoadedEvent,
-    ExceptionRaisedEvent,
+    ScenarioFailedEvent,
     StartupEvent,
 )
 
@@ -24,6 +24,7 @@ from ._utils import (
     get_telemetry_event,
     make_exc_info,
     make_vscenario,
+    make_vstep,
     plugin,
     report_,
     send_request_,
@@ -45,6 +46,7 @@ async def test_started_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Di
         telemetry_event = get_telemetry_event(send_request_)
         assert assert_telemetry_event(telemetry_event, {
             "event_id": "StartedTelemetryEvent",
+            "project_id": "vedro-telemetry",
             "plugins": [
                 {
                     "name": "VedroTelemetryPlugin",
@@ -117,7 +119,12 @@ async def test_raised_exc_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dis
                                 send_request_: AsyncMock):
     with given:
         exc_info = make_exc_info(AssertionError("1 != 0"))
-        event = ExceptionRaisedEvent(exc_info)
+
+        scenario_result = ScenarioResult(make_vscenario())
+        step_result = StepResult(make_vstep()).set_exc_info(exc_info)
+        scenario_result.add_step_result(step_result)
+
+        event = ScenarioFailedEvent(scenario_result)
         await dispatcher.fire(event)
 
     with when:
@@ -127,11 +134,12 @@ async def test_raised_exc_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dis
         telemetry_event = get_telemetry_event(send_request_)
         assert assert_telemetry_event(telemetry_event, {
             "event_id": "ExcRaisedTelemetryEvent",
+            "scenario_id": f"{scenario_result.scenario.rel_path}::Scenario",
             "exception": {
                 "type": "AssertionError",
                 "message": "1 != 0",
                 "traceback": [
-                    '  File "./tests/_utils.py", line 60, in make_exc_info\n    raise exc_val\n'
+                    '  File "./tests/_utils.py", line 75, in make_exc_info\n    raise exc_val\n'
                 ]
             }
         })

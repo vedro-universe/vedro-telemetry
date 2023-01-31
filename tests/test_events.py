@@ -16,13 +16,15 @@ from vedro_telemetry.events import (
 def test_started_telemetry_event_repr():
     with given:
         session_id = uuid4()
-        event = StartedTelemetryEvent(session_id, [])
+        project_id = "test"
+        event = StartedTelemetryEvent(session_id, project_id, plugins=[])
 
     with when:
         res = repr(event)
 
     with then:
-        assert res == f"<StartedTelemetryEvent session_id={str(session_id)!r}>"
+        assert res == (f"<StartedTelemetryEvent session_id={str(session_id)!r} "
+                       f"project_id={project_id!r}>")
 
 
 def test_arg_parse_telemetry_event_repr():
@@ -68,16 +70,17 @@ def test_startup_telemetry_event_repr():
 def test_exc_raised_telemetry_event_repr():
     with given:
         session_id = uuid4()
+        scenario_id = "scenarios/scenario.py::Scenario"
         exception = AssertionError("1 != 0")
         exc_info = make_exc_info(exception)
-        event = ExcRaisedTelemetryEvent(session_id, exc_info.value, [])
+        event = ExcRaisedTelemetryEvent(session_id, scenario_id, exc_info.value, [])
 
     with when:
         res = repr(event)
 
     with then:
         assert res == (f"<ExcRaisedTelemetryEvent session_id={str(session_id)!r} "
-                       f"exception={exception!r}>")
+                       f"scenario_id={scenario_id!r} exception={exception!r}>")
 
 
 def test_ended_telemetry_event_repr():

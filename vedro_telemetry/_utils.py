@@ -15,11 +15,13 @@ def _get_project_name(path: Path) -> Union[str, None]:
     return _get_project_name(path.parent)
 
 
-def get_project_name(path: Optional[Path] = None) -> Union[str, None]:
+def get_project_name(path: Optional[Path] = None, *, default: str = "") -> str:
     if path is None:
         path = Path()
 
     if not path.is_absolute():
         path = path.absolute()
 
-    return _get_project_name(path)
+    if project_name := _get_project_name(path):
+        return project_name
+    return default
