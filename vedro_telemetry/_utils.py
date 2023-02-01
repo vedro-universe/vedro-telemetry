@@ -34,7 +34,7 @@ def get_package_version(name: str, *, default: str = "0.0.0") -> str:
         version = metadata(name)
     except PackageNotFoundError:
         return default
-    return version["Version"] if ("Version" in version) else default
+    return str(version["Version"]) if ("Version" in version) else default
 
 
 def now() -> int:
