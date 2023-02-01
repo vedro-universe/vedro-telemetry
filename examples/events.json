@@ -1,0 +1,77 @@
+[
+    {
+        "event_id": "StartedTelemetryEvent",
+        "session_id": "c48ead70-071e-4f78-b6c5-93c0ddc35984",
+        "created_at": 1675268903618,
+        "project_id": "test",
+        "inited_at": 1675268903616,
+        "environment": {
+            "python_version": "3.10.9 (main, Dec 15 2022, 10:44:50) [Clang 14.0.0 (clang-1400.0.29.202)]",
+            "vedro_version": "1.8.3"
+        },
+        "plugins": [
+            {
+                "name": "ValeraValidatorPlugin",
+                "module": "vedro_valera_validator._valera_validator",
+                "enabled": true,
+                "version": "1.1.0"
+            },
+            {
+                "name": "VedroTelemetryPlugin",
+                "module": "vedro_telemetry._vedro_telemetry",
+                "enabled": true,
+                "version": "0.0.0"
+            }
+        ]
+    },
+    {
+        "event_id": "ArgParseTelemetryEvent",
+        "session_id": "c48ead70-071e-4f78-b6c5-93c0ddc35984",
+        "created_at": 1675268903618,
+        "cmd": [
+            "./.venv/bin/vedro",
+            "run",
+            "-vv"
+        ]
+    },
+    {
+        "event_id": "ArgParsedTelemetryEvent",
+        "session_id": "c48ead70-071e-4f78-b6c5-93c0ddc35984",
+        "created_at": 1675268903657,
+        "args": {
+            "--verbose": 2
+        }
+    },
+    {
+        "event_id": "StartupTelemetryEvent",
+        "session_id": "c48ead70-071e-4f78-b6c5-93c0ddc35984",
+        "created_at": 1675268903699,
+        "discovered": 2,
+        "scheduled": 2
+    },
+    {
+        "event_id": "ExcRaisedTelemetryEvent",
+        "session_id": "c48ead70-071e-4f78-b6c5-93c0ddc35984",
+        "created_at": 1675268903699,
+        "scenario_id": "scenarios/register_user.py::Scenario",
+        "exception": {
+            "type": "valera.ValidationException",
+            "message": "\n - Value <class 'str'> at _['name'] must be equal to 'Bob', but 'Alice' given",
+            "traceback": [
+                "  File \"./.venv/lib/python3.10/site-packages/vedro/core/scenario_runner/_monotonic_scenario_runner.py\", line 54, in run_step\n    step(ref)\n",
+                "  File \"./.venv/lib/python3.10/site-packages/vedro/core/_virtual_step.py\", line 19, in __call__\n    return self._orig_step(*args, **kwargs)\n",
+                "  File \"./scenarios/register_user.py\", line 21, in then\n    assert self.response == schema.dict({\n"
+            ]
+        }
+    },
+    {
+        "event_id": "EndedTelemetryEvent",
+        "session_id": "c48ead70-071e-4f78-b6c5-93c0ddc35984",
+        "created_at": 1675268903729,
+        "total": 2,
+        "passed": 1,
+        "failed": 1,
+        "skipped": 0,
+        "interrupted": null
+    }
+]
