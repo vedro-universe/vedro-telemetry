@@ -47,6 +47,7 @@ async def test_started_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Di
         assert assert_telemetry_event(telemetry_event, {
             "event_id": "StartedTelemetryEvent",
             "project_id": "vedro-telemetry",
+            "inited_at": plugin._inited_at,
             "plugins": [
                 {
                     "name": "VedroTelemetryPlugin",
@@ -148,7 +149,7 @@ async def test_raised_exc_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dis
 async def test_ended_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
                                config: ConfigType, report_: Mock, send_request_: AsyncMock):
     with given:
-        api_url = config.Plugins.VedroTelemetry.api_url
+        api_url = config.Plugins.VedroTelemetry.api_url + "/v1/events"
         timeout = config.Plugins.VedroTelemetry.timeout
         event = CleanupEvent(report_)
 

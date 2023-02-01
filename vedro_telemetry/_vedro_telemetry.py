@@ -18,7 +18,7 @@ from vedro.events import (
 )
 
 from ._send_request import SendRequestFn, send_request
-from ._utils import get_project_name
+from ._utils import get_project_name, now
 from .events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
@@ -35,10 +35,12 @@ __all__ = ("VedroTelemetry", "VedroTelemetryPlugin",)
 
 
 class VedroTelemetryPlugin(Plugin):
+    _inited_at = now()
+
     def __init__(self, config: Type["VedroTelemetry"], *,
                  send_request: SendRequestFn = send_request) -> None:
         super().__init__(config)
-        self._api_url = config.api_url
+        self._api_url = config.api_url.strip("/")
         self._timeout = config.timeout
         self._send_request = send_request
         self._session_id = uuid4()
@@ -66,11 +68,12 @@ class VedroTelemetryPlugin(Plugin):
                 "module": module,
                 "enabled": section.enabled,
             })
-        self._events += [StartedTelemetryEvent(self._session_id, self._project_id, plugins)]
+        self._events += [
+            StartedTelemetryEvent(self._session_id, self._project_id, self._inited_at, plugins)
+        ]
 
     def on_arg_parse(self, event: ArgParseEvent) -> None:
-        self._arg_parser = event.arg_parser  # needed for on_arg_parsed
-
+        self._arg_parser = event.arg_parser
         path, *args = sys.argv
         prog = self._cleanup_arg(os.path.abspath(path))
         self._events += [ArgParseTelemetryEvent(self._session_id, [prog] + args)]
@@ -126,7 +129,7 @@ class VedroTelemetryPlugin(Plugin):
 
     async def _send_events(self) -> None:
         payload = [e.to_dict() for e in self._events]
-        await self._send_request(self._api_url, self._timeout, payload)
+        await self._send_request(f"{self._api_url}/v1/events", self._timeout, payload)
         self._events = []
 
     def _format_exception(self, exc_info: ExcInfo) -> ExceptionInfo:

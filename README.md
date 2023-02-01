@@ -29,10 +29,7 @@ class Config(vedro.Config):
         class VedroTelemetry(vedro_telemetry.VedroTelemetry):
             enabled = True
 
-            #  # Vedro Telemetry API URL
+            # Vedro Telemetry API URL
             api_url: str = "http://localhost:8080"
-            
-            # Timeout for requests to the API
-            timeout: float = 5.0
 
 ```

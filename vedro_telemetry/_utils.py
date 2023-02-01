@@ -1,7 +1,8 @@
 from pathlib import Path
+from time import time
 from typing import Optional, Union
 
-__all__ = ("get_project_name",)
+__all__ = ("now", "get_project_name",)
 
 
 def _get_project_name(path: Path) -> Union[str, None]:
@@ -25,3 +26,7 @@ def get_project_name(path: Optional[Path] = None, *, default: str = "") -> str:
     if project_name := _get_project_name(path):
         return project_name
     return default
+
+
+def now() -> int:
+    return round(time() * 1000)

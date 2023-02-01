@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from time import time
 from typing import Any, Dict, List, TypedDict, Union
 from uuid import UUID
+
+from ._utils import now
 
 __all__ = ("StartedTelemetryEvent", "ArgParseTelemetryEvent", "ArgParsedTelemetryEvent",
            "StartupTelemetryEvent", "ExcRaisedTelemetryEvent", "EndedTelemetryEvent",
@@ -22,7 +23,7 @@ class ExceptionInfo(TypedDict):
 
 class TelemetryEvent(ABC):
     def __init__(self) -> None:
-        self._created_at = round(time() * 1000)
+        self._created_at = now()
 
     @abstractmethod
     def to_dict(self) -> Dict[str, Any]:
@@ -34,18 +35,21 @@ class TelemetryEvent(ABC):
 
 
 class StartedTelemetryEvent(TelemetryEvent):
-    def __init__(self, session_id: UUID, project_id: str, plugins: List[PluginInfo]) -> None:
+    def __init__(self, session_id: UUID, project_id: str, inited_at: int,
+                 plugins: List[PluginInfo]) -> None:
         super().__init__()
         self._session_id = str(session_id)
         self._project_id = project_id
+        self._inited_at = inited_at
         self._plugins = plugins
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "event_id": f"{self.__class__.__name__}",
             "session_id": self._session_id,
-            "project_id": self._project_id,
             "created_at": self._created_at,
+            "project_id": self._project_id,
+            "inited_at": self._inited_at,
             "plugins": self._plugins,
         }
 
