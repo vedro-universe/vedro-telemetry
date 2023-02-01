@@ -6,7 +6,7 @@ from ._utils import now
 
 __all__ = ("StartedTelemetryEvent", "ArgParseTelemetryEvent", "ArgParsedTelemetryEvent",
            "StartupTelemetryEvent", "ExcRaisedTelemetryEvent", "EndedTelemetryEvent",
-           "TelemetryEvent", "PluginInfo", "ExceptionInfo",)
+           "TelemetryEvent", "PluginInfo", "ExceptionInfo", "EnvironmentInfo",)
 
 
 class PluginInfo(TypedDict):
@@ -20,6 +20,12 @@ class ExceptionInfo(TypedDict):
     type: str
     message: str
     traceback: List[str]
+
+
+class EnvironmentInfo(TypedDict):
+    python_version: str
+    vedro_version: str
+    vedro_telemetry_version: str
 
 
 class TelemetryEvent(ABC):
@@ -37,11 +43,12 @@ class TelemetryEvent(ABC):
 
 class StartedTelemetryEvent(TelemetryEvent):
     def __init__(self, session_id: UUID, project_id: str, inited_at: int,
-                 plugins: List[PluginInfo]) -> None:
+                 environment: EnvironmentInfo, plugins: List[PluginInfo]) -> None:
         super().__init__()
         self._session_id = str(session_id)
         self._project_id = project_id
         self._inited_at = inited_at
+        self._environment = environment
         self._plugins = plugins
 
     def to_dict(self) -> Dict[str, Any]:
@@ -51,6 +58,7 @@ class StartedTelemetryEvent(TelemetryEvent):
             "created_at": self._created_at,
             "project_id": self._project_id,
             "inited_at": self._inited_at,
+            "environment": self._environment,
             "plugins": self._plugins,
         }
 

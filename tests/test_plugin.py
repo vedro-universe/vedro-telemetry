@@ -1,3 +1,4 @@
+import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, call, patch
@@ -16,6 +17,7 @@ from vedro.events import (
 )
 
 from vedro_telemetry import VedroTelemetryPlugin
+from vedro_telemetry._utils import get_package_version
 
 from ._utils import (
     assert_telemetry_event,
@@ -48,6 +50,11 @@ async def test_started_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Di
             "event_id": "StartedTelemetryEvent",
             "project_id": "vedro-telemetry",
             "inited_at": plugin._inited_at,
+            "environment": {
+                "python_version": sys.version,
+                "vedro_version": get_package_version("vedro"),
+                "vedro_telemetry_version": get_package_version("vedro_telemetry"),
+            },
             "plugins": [
                 {
                     "name": "VedroTelemetryPlugin",

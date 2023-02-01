@@ -23,6 +23,7 @@ from .events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
     EndedTelemetryEvent,
+    EnvironmentInfo,
     ExceptionInfo,
     ExcRaisedTelemetryEvent,
     PluginInfo,
@@ -56,11 +57,10 @@ class VedroTelemetryPlugin(Plugin):
                   .listen(ScenarioFailedEvent, self.on_scenario_failed) \
                   .listen(CleanupEvent, self.on_cleanup)
 
-    def on_config_loaded(self, event: ConfigLoadedEvent) -> None:
+    async def on_config_loaded(self, event: ConfigLoadedEvent) -> None:
         plugins: List[PluginInfo] = []
         for _, section in event.config.Plugins.items():
-            name = section.plugin.__name__
-            module = section.plugin.__module__
+            name, module = section.plugin.__name__, section.plugin.__module__
             package = module.split(".")[0]
             if module.startswith("vedro.plugins") and section.enabled:
                 continue
@@ -70,8 +70,19 @@ class VedroTelemetryPlugin(Plugin):
                 "enabled": section.enabled,
                 "version": get_package_version(package),
             })
+        environment: EnvironmentInfo = {
+            "python_version": sys.version,
+            "vedro_version": get_package_version("vedro"),
+            "vedro_telemetry_version": get_package_version("vedro_telemetry"),
+        }
         self._events += [
-            StartedTelemetryEvent(self._session_id, self._project_id, self._inited_at, plugins)
+            StartedTelemetryEvent(
+                session_id=self._session_id,
+                project_id=self._project_id,
+                inited_at=self._inited_at,
+                plugins=plugins,
+                environment=environment,
+            )
         ]
 
     def on_arg_parse(self, event: ArgParseEvent) -> None:

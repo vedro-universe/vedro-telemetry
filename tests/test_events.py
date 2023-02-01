@@ -17,7 +17,8 @@ def test_started_telemetry_event_repr():
         session_id = uuid4()
         project_id = "test"
         inited_at = 0
-        event = StartedTelemetryEvent(session_id, project_id, inited_at, plugins=[])
+        event = StartedTelemetryEvent(session_id, project_id, inited_at,
+                                      environment={}, plugins=[])
 
     with when:
         res = repr(event)
