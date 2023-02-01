@@ -20,13 +20,13 @@ $ pip3 install vedro-telemetry
 ```python
 # ./vedro.cfg.py
 import vedro
-import vedro_telemetry
+import vedro_telemetry as t
 
 class Config(vedro.Config):
 
     class Plugins(vedro.Config.Plugins):
 
-        class VedroTelemetry(vedro_telemetry.VedroTelemetry):
+        class VedroTelemetry(t.VedroTelemetry):
             enabled = True
 
             # Vedro Telemetry API URL

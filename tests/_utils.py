@@ -3,7 +3,7 @@ from pathlib import Path
 from time import monotonic_ns
 from types import TracebackType
 from typing import Any, Dict, cast
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 import pytest
 from vedro import Scenario as Scenario_
@@ -39,9 +39,9 @@ def config() -> ConfigType:
 
 
 @pytest.fixture()
-def send_request_() -> AsyncMock:
+def send_request_() -> Mock:
     response = 200, {}
-    return AsyncMock(return_value=response)
+    return Mock(return_value=response)
 
 
 @pytest.fixture()
@@ -78,7 +78,7 @@ def make_exc_info(exc_val: BaseException) -> ExcInfo:
     return ExcInfo(type(exc_val), exc_val, cast(TracebackType, traceback))
 
 
-def get_telemetry_event(mock: AsyncMock) -> Dict[str, Any]:
+def get_telemetry_event(mock: Mock) -> Dict[str, Any]:
     # send_request call
     assert len(mock.call_args_list) == 1, mock.call_args_list
     arg_list = mock.call_args_list[0]

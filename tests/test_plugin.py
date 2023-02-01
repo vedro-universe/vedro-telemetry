@@ -1,7 +1,7 @@
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, call, patch
+from unittest.mock import Mock, call, patch
 
 from baby_steps import given, then, when
 from vedro.core import ConfigType, Dispatcher
@@ -36,7 +36,7 @@ __all__ = ("plugin", "dispatcher", "config", "send_request_", "report_")  # fixt
 
 
 async def test_started_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
-                                 config: ConfigType, send_request_: AsyncMock):
+                                 config: ConfigType, send_request_: Mock):
     with given:
         event = ConfigLoadedEvent(Path(), config)
         await dispatcher.fire(event)
@@ -66,7 +66,7 @@ async def test_started_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Di
 
 
 async def test_arg_parse_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
-                               send_request_: AsyncMock):
+                               send_request_: Mock):
     with given:
         event = ArgParseEvent(ArgumentParser())
         argv = ["prog", "run", "-vv"]
@@ -85,7 +85,7 @@ async def test_arg_parse_event(*, plugin: VedroTelemetryPlugin, dispatcher: Disp
 
 
 async def test_arg_parsed_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
-                                send_request_: AsyncMock):
+                                send_request_: Mock):
     with given:
         event = ArgParsedEvent(Namespace())
         await dispatcher.fire(event)
@@ -102,7 +102,7 @@ async def test_arg_parsed_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dis
 
 
 async def test_startup_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
-                             send_request_: AsyncMock):
+                             send_request_: Mock):
     with given:
         scenarios = [make_vscenario(), make_vscenario(), make_vscenario()]
         scheduler = Scheduler(scenarios)
@@ -124,7 +124,7 @@ async def test_startup_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dispat
 
 
 async def test_raised_exc_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
-                                send_request_: AsyncMock):
+                                send_request_: Mock):
     with given:
         exc_info = make_exc_info(AssertionError("1 != 0"))
 
@@ -154,7 +154,7 @@ async def test_raised_exc_event(*, plugin: VedroTelemetryPlugin, dispatcher: Dis
 
 
 async def test_ended_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Dispatcher,
-                               config: ConfigType, report_: Mock, send_request_: AsyncMock):
+                               config: ConfigType, report_: Mock, send_request_: Mock):
     with given:
         api_url = config.Plugins.VedroTelemetry.api_url + "/v1/events"
         timeout = config.Plugins.VedroTelemetry.timeout

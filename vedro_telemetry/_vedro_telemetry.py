@@ -1,3 +1,4 @@
+import atexit
 import os
 import sys
 from argparse import ArgumentParser
@@ -83,6 +84,7 @@ class VedroTelemetryPlugin(Plugin):
                 plugins=plugins,
             )
         ]
+        atexit.register(self._send_events)
 
     def on_arg_parse(self, event: ArgParseEvent) -> None:
         self._arg_parser = event.arg_parser
@@ -110,6 +112,7 @@ class VedroTelemetryPlugin(Plugin):
 
     def on_scenario_failed(self, event: ScenarioFailedEvent) -> None:
         scenario_result = event.scenario_result
+        # hacky way
         scenario_id = b64decode(scenario_result.scenario.unique_id + "===").decode()
 
         for step_result in scenario_result.step_results:
@@ -121,7 +124,7 @@ class VedroTelemetryPlugin(Plugin):
                 ExcRaisedTelemetryEvent(self._session_id, scenario_id, exception)
             ]
 
-    async def on_cleanup(self, event: CleanupEvent) -> None:
+    def on_cleanup(self, event: CleanupEvent) -> None:
         report = event.report
         interrupted = self._format_exception(report.interrupted) if report.interrupted else None
         self._events += [
@@ -135,13 +138,13 @@ class VedroTelemetryPlugin(Plugin):
             )
         ]
         try:
-            await self._send_events()
+            self._send_events()
         finally:
-            pass
+            atexit.unregister(self._send_events)
 
-    async def _send_events(self) -> None:
+    def _send_events(self) -> None:
         payload = [e.to_dict() for e in self._events]
-        await self._send_request(f"{self._api_url}/v1/events", self._timeout, payload)
+        self._send_request(f"{self._api_url}/v1/events", self._timeout, payload)
         self._events = []
 
     def _format_exception(self, exc_info: ExcInfo) -> ExceptionInfo:
