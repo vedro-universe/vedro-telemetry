@@ -17,7 +17,7 @@ async def send_request(url: str, timeout: float, payload: Any) -> Tuple[int, Any
         try:
             response = await client.post(url, json=payload, timeout=timeout)
         except RequestError as e:
-            raise TelemetryRequestError(f"Failed to send events: «{e!r}»") from None
+            raise TelemetryRequestError(f"Failed to send events to {url!r}: «{e!r}»") from None
 
         status = response.status_code
         try:
@@ -26,5 +26,5 @@ async def send_request(url: str, timeout: float, payload: Any) -> Tuple[int, Any
             body = response.text
 
     if status != HTTPStatus.OK:
-        raise TelemetryRequestError(f"Failed to send events: {status} «{body}»")
+        raise TelemetryRequestError(f"Failed to send events to {url!r}: {status} «{body}»")
     return status, body
