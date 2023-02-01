@@ -25,7 +25,6 @@ class ExceptionInfo(TypedDict):
 class EnvironmentInfo(TypedDict):
     python_version: str
     vedro_version: str
-    vedro_telemetry_version: str
 
 
 class TelemetryEvent(ABC):

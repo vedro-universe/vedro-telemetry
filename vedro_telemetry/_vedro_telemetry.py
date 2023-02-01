@@ -73,15 +73,14 @@ class VedroTelemetryPlugin(Plugin):
         environment: EnvironmentInfo = {
             "python_version": sys.version,
             "vedro_version": get_package_version("vedro"),
-            "vedro_telemetry_version": get_package_version("vedro_telemetry"),
         }
         self._events += [
             StartedTelemetryEvent(
                 session_id=self._session_id,
                 project_id=self._project_id,
                 inited_at=self._inited_at,
-                plugins=plugins,
                 environment=environment,
+                plugins=plugins,
             )
         ]
 
