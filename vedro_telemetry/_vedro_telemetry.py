@@ -46,7 +46,7 @@ class VedroTelemetryPlugin(Plugin):
         self._timeout = config.timeout
         self._send_request = send_request
         self._session_id = uuid4()
-        self._project_id = get_project_name(default="unknown")
+        self._project_id = config.project_id or get_project_name(default="unknown")
         self._events: List[TelemetryEvent] = []
         self._arg_parser: Union[ArgumentParser, None] = None
 
@@ -177,3 +177,6 @@ class VedroTelemetry(PluginConfig):
 
     # Timeout for requests to the API
     timeout: float = 5.0
+
+    # Project ID
+    project_id: Union[str, None] = None
