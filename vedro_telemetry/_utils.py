@@ -1,8 +1,9 @@
+from importlib.metadata import PackageNotFoundError, metadata
 from pathlib import Path
 from time import time
 from typing import Optional, Union
 
-__all__ = ("now", "get_project_name",)
+__all__ = ("now", "get_project_name", "get_package_version",)
 
 
 def _get_project_name(path: Path) -> Union[str, None]:
@@ -26,6 +27,14 @@ def get_project_name(path: Optional[Path] = None, *, default: str = "") -> str:
     if project_name := _get_project_name(path):
         return project_name
     return default
+
+
+def get_package_version(name: str, *, default: str = "0.0.0") -> str:
+    try:
+        version = metadata(name)
+    except PackageNotFoundError:
+        return default
+    return version["Version"] if ("Version" in version) else default
 
 
 def now() -> int:

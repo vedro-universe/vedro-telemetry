@@ -18,7 +18,7 @@ from vedro.events import (
 )
 
 from ._send_request import SendRequestFn, send_request
-from ._utils import get_project_name, now
+from ._utils import get_package_version, get_project_name, now
 from .events import (
     ArgParsedTelemetryEvent,
     ArgParseTelemetryEvent,
@@ -61,12 +61,14 @@ class VedroTelemetryPlugin(Plugin):
         for _, section in event.config.Plugins.items():
             name = section.plugin.__name__
             module = section.plugin.__module__
+            package = module.split(".")[0]
             if module.startswith("vedro.plugins") and section.enabled:
                 continue
             plugins.append({
                 "name": name,
                 "module": module,
                 "enabled": section.enabled,
+                "version": get_package_version(package),
             })
         self._events += [
             StartedTelemetryEvent(self._session_id, self._project_id, self._inited_at, plugins)

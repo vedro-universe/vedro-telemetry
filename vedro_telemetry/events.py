@@ -13,6 +13,7 @@ class PluginInfo(TypedDict):
     name: str
     module: str
     enabled: bool
+    version: str
 
 
 class ExceptionInfo(TypedDict):
