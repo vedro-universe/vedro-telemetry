@@ -44,6 +44,7 @@ class VedroTelemetryPlugin(Plugin):
         super().__init__(config)
         self._api_url = config.api_url.strip("/")
         self._timeout = config.timeout
+        self._raise_exception = config.raise_exception_on_failure
         self._send_request = send_request
         self._session_id = uuid4()
         self._project_id = config.project_id or get_project_name(default="unknown")
@@ -147,7 +148,13 @@ class VedroTelemetryPlugin(Plugin):
 
     def _send_events(self) -> None:
         payload = [e.to_dict() for e in self._events]
-        self._send_request(f"{self._api_url}/v1/events", self._timeout, payload)
+        try:
+            self._send_request(f"{self._api_url}/v1/events", self._timeout, payload)
+        except BaseException as e:
+            if self._raise_exception:
+                raise
+            else:
+                print(f"[Error] {e!r}", file=sys.stderr)
         self._events = []
 
     def _format_exception(self, exc_info: ExcInfo) -> ExceptionInfo:
@@ -183,3 +190,6 @@ class VedroTelemetry(PluginConfig):
 
     # Project ID
     project_id: Union[str, None] = None
+
+    # Raise exception if telemetry sending failed
+    raise_exception_on_failure: bool = True
