@@ -126,7 +126,10 @@ class VedroTelemetryPlugin(Plugin):
 
     def on_cleanup(self, event: CleanupEvent) -> None:
         report = event.report
-        interrupted = self._format_exception(report.interrupted) if report.interrupted else None
+        interrupted = None
+        # vedro 1.7 compatibility
+        if getattr(report, "interrupted", None):
+            self._format_exception(report.interrupted)  # type: ignore
         self._events += [
             EndedTelemetryEvent(
                 session_id=self._session_id,

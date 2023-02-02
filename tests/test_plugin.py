@@ -59,7 +59,7 @@ async def test_started_telemetry(*, plugin: VedroTelemetryPlugin, dispatcher: Di
                     "name": "VedroTelemetryPlugin",
                     "module": "vedro_telemetry._vedro_telemetry",
                     "enabled": True,
-                    "version": "0.0.0",
+                    "version": get_package_version("vedro_telemetry"),
                 }
             ]
         })
