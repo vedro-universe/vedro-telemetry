@@ -69,7 +69,7 @@ async def test_arg_parse_event(*, plugin: VedroTelemetryPlugin, dispatcher: Disp
                                send_request_: Mock):
     with given:
         event = ArgParseEvent(ArgumentParser())
-        argv = ["prog", "run", "-vv"]
+        argv = ["prog", "run", "-v"]
         with patch("sys.argv", argv):
             await dispatcher.fire(event)
 
@@ -80,7 +80,7 @@ async def test_arg_parse_event(*, plugin: VedroTelemetryPlugin, dispatcher: Disp
         telemetry_event = get_telemetry_event(send_request_)
         assert assert_telemetry_event(telemetry_event, {
             "event_id": "ArgParseTelemetryEvent",
-            "cmd": ["./prog", "run", "-vv"],
+            "cmd": ["./prog", "run", "-v"],
         })
 
 

@@ -8,7 +8,7 @@ from types import TracebackType
 from typing import Any, List, Type, Union
 from uuid import uuid4
 
-from vedro.core import Dispatcher, ExcInfo, Plugin, PluginConfig
+from vedro.core import Dispatcher, ExcInfo, Plugin, PluginConfig, VirtualScenario
 from vedro.events import (
     ArgParsedEvent,
     ArgParseEvent,
@@ -111,10 +111,15 @@ class VedroTelemetryPlugin(Plugin):
         scheduled = len(list(event.scheduler.scheduled))
         self._events += [StartupTelemetryEvent(self._session_id, discovered, scheduled)]
 
+    def _get_scenario_id(self, scenario: VirtualScenario) -> str:
+        # vedro v1.10 compatibility
+        if "::" not in scenario.unique_id:
+            return b64decode(scenario.unique_id + "===").decode()
+        return scenario.unique_id
+
     def on_scenario_failed(self, event: ScenarioFailedEvent) -> None:
         scenario_result = event.scenario_result
-        # hacky way
-        scenario_id = b64decode(scenario_result.scenario.unique_id + "===").decode()
+        scenario_id = self._get_scenario_id(event.scenario_result.scenario)
 
         for step_result in scenario_result.step_results:
             exc_info = step_result.exc_info
@@ -128,7 +133,7 @@ class VedroTelemetryPlugin(Plugin):
     def on_cleanup(self, event: CleanupEvent) -> None:
         report = event.report
         interrupted = None
-        # vedro 1.7 compatibility
+        # vedro v1.7 compatibility
         if getattr(report, "interrupted", None):
             self._format_exception(report.interrupted)  # type: ignore
         self._events += [
