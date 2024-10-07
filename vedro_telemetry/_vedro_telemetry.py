@@ -3,12 +3,13 @@ import os
 import sys
 from argparse import ArgumentParser
 from base64 import b64decode
+from pathlib import Path
 from traceback import format_tb
 from types import TracebackType
 from typing import Any, List, Type, Union
 from uuid import uuid4
 
-from vedro.core import Dispatcher, ExcInfo, Plugin, PluginConfig, VirtualScenario
+from vedro.core import ConfigType, Dispatcher, ExcInfo, Plugin, PluginConfig, VirtualScenario
 from vedro.events import (
     ArgParsedEvent,
     ArgParseEvent,
@@ -68,6 +69,7 @@ class VedroTelemetryPlugin(Plugin):
         self._project_id = config.project_id or get_project_name(default="unknown")
         self._events: List[TelemetryEvent] = []
         self._arg_parser: Union[ArgumentParser, None] = None
+        self._global_config: Union[ConfigType, None] = None
 
     def subscribe(self, dispatcher: Dispatcher) -> None:
         """
@@ -95,8 +97,10 @@ class VedroTelemetryPlugin(Plugin):
 
         :param event: The `ConfigLoadedEvent` from which to extract configuration details.
         """
+        self._global_config = event.config
+
         plugins: List[PluginInfo] = []
-        for _, section in event.config.Plugins.items():
+        for _, section in self._global_config.Plugins.items():
             name, module = section.plugin.__name__, section.plugin.__module__
             package = module.split(".")[0]
             if module.startswith("vedro.plugins") and section.enabled:
@@ -286,7 +290,16 @@ class VedroTelemetryPlugin(Plugin):
         """
         return [self._cleanup_arg(x) for x in format_tb(tb, limit=100)]
 
-    def _cleanup_arg(self, arg: Any, cwd: str = os.getcwd()) -> Any:
+    def _get_project_dir(self) -> Path:
+        """
+        Retrieve the project directory from the global configuration.
+
+        :return: The resolved project directory as a `Path` object.
+        """
+        project_dir = getattr(self._global_config, "project_dir", Path.cwd())
+        return project_dir.resolve()
+
+    def _cleanup_arg(self, arg: Any) -> Any:
         """
         Clean up command-line arguments or other data before reporting.
 
@@ -294,7 +307,6 @@ class VedroTelemetryPlugin(Plugin):
         to avoid reporting sensitive information.
 
         :param arg: The argument or data to clean up.
-        :param cwd: The current working directory for reference during cleanup.
         :return: The cleaned-up argument or data.
         """
         if isinstance(arg, dict):
@@ -304,6 +316,7 @@ class VedroTelemetryPlugin(Plugin):
         elif isinstance(arg, (type(None), bool, int, float)):
             return arg
         else:
+            cwd = str(self._get_project_dir())
             return str(arg).replace(cwd, ".")
 
 
