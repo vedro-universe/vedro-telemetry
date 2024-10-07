@@ -20,7 +20,7 @@ setup(
     author="Nikita Tsvetkov",
     author_email="tsv1@fastmail.com",
     python_requires=">=3.8",
-    url="https://github.com/tsv1/vedro-telemetry",
+    url="https://github.com/vedro-universe/vedro-telemetry",
     license="Apache-2.0",
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_data={"vedro_telemetry": ["py.typed"]},

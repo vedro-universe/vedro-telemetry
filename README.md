@@ -1,6 +1,6 @@
 # Vedro Telemetry
 
-[![Codecov](https://img.shields.io/codecov/c/github/tsv1/vedro-telemetry/main.svg?style=flat-square)](https://codecov.io/gh/tsv1/vedro-telemetry)
+[![Codecov](https://img.shields.io/codecov/c/github/vedro-universe/vedro-telemetry/main.svg?style=flat-square)](https://codecov.io/gh/vedro-universe/vedro-telemetry)
 [![PyPI](https://img.shields.io/pypi/v/vedro-telemetry.svg?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/vedro-telemetry?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
 [![Python Version](https://img.shields.io/pypi/pyversions/vedro-telemetry.svg?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
