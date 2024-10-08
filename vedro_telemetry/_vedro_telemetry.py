@@ -6,7 +6,7 @@ from base64 import b64decode
 from pathlib import Path
 from traceback import format_tb
 from types import TracebackType
-from typing import Any, List, Type, Union
+from typing import Any, List, Type, Union, final
 from uuid import uuid4
 
 from vedro.core import ConfigType, Dispatcher, ExcInfo, Plugin, PluginConfig, VirtualScenario
@@ -37,6 +37,7 @@ from .events import (
 __all__ = ("VedroTelemetry", "VedroTelemetryPlugin",)
 
 
+@final
 class VedroTelemetryPlugin(Plugin):
     """
     A plugin for capturing and sending telemetry data from Vedro test runs.
