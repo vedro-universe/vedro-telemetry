@@ -1,35 +1,12 @@
 # Vedro Telemetry
 
 [![Codecov](https://img.shields.io/codecov/c/github/vedro-universe/vedro-telemetry/main.svg?style=flat-square)](https://codecov.io/gh/vedro-universe/vedro-telemetry)
-[![PyPI](https://img.shields.io/pypi/v/vedro-telemetry.svg?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/vedro-telemetry?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
-[![Python Version](https://img.shields.io/pypi/pyversions/vedro-telemetry.svg?style=flat-square)](https://pypi.python.org/pypi/vedro-telemetry/)
+[![PyPI](https://img.shields.io/pypi/v/vedro-telemetry.svg?style=flat-square)](https://pypi.org/project/vedro-telemetry/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/vedro-telemetry?style=flat-square)](https://pypi.org/project/vedro-telemetry/)
+[![Python Version](https://img.shields.io/pypi/pyversions/vedro-telemetry.svg?style=flat-square)](https://pypi.org/project/vedro-telemetry/)
 
-Vedro plugin for self-hosted telemetry
+[vedro-telemetry](https://pypi.org/project/vedro-telemetry/) is an external Vedro plugin that enables saving telemetry events to your own **self-hosted** server. It's useful for teams to monitor and analyze their test suites across different projects in a centralized manner.
 
-## Installation
+## Documentation
 
-### 1. Install package
-
-```shell
-$ pip3 install vedro-telemetry
-```
-
-### 2. Enable plugin
-
-```python
-# ./vedro.cfg.py
-import vedro
-import vedro_telemetry as t
-
-class Config(vedro.Config):
-
-    class Plugins(vedro.Config.Plugins):
-
-        class VedroTelemetry(t.VedroTelemetry):
-            enabled = True
-
-            # Vedro Telemetry API URL
-            api_url: str = "http://localhost:8080"
-
-```
+For installation instructions, usage details, and more information, please refer to the [documentation](https://vedro.io/docs/solutions/self-hosted-telemetry).

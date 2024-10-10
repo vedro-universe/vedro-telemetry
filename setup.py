@@ -14,7 +14,7 @@ def find_dev_required():
 setup(
     name="vedro-telemetry",
     version="0.2.3",
-    description="Vedro plugin for self-hosted telemetry",
+    description="Vedro plugin for collecting and sending test telemetry to your self-hosted server",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="Nikita Tsvetkov",
